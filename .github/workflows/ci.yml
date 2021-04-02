@@ -1,0 +1,39 @@
+name: Run tests
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    name: Tests Ubuntu
+    runs-on: ubuntu-20.04
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+    steps:
+    - name: apt
+      run: |
+        sudo apt-get update \
+          && sudo apt-get install -y \
+            cmake \
+            g++ \
+            libatlas-base-dev \
+            libspdlog-dev
+    - name: blaze
+      run: |
+        wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz \
+        && tar -xzf blaze-3.8.tar.gz \
+        && cd blaze-3.8 \
+        && cmake -S . -B build/ \
+          -DCMAKE_INSTALL_PREFIX=/usr/local/ \
+        && cd build \
+        && sudo make -j2 install
+
+    - name: Checkout
+      uses: actions/checkout@25a956c84d5dd820d28caab9f86b8d183aeeff3d
+
+    - name: Build
+      run: |
+        cmake -Wdev -Werror=dev -Wdeprecated -Werror=deprecated \
+            -S . -B build/ \
+          && cmake --build build/
+
+    - name: Tests
+      run: cd build && CTEST_OUTPUT_ON_FAILURE=1 ctest

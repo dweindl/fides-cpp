@@ -141,7 +141,7 @@ unbounded_and_init()
 class minimize1
   : public TestWithParam<
       std::tuple<std::pair<bounds_and_init_fun_t, std::string>,
-                 std::tuple<std::string, std::string>,
+                 std::pair<std::string, std::string>,
                  SubSpaceDim,
                  StepBackStrategy,
                  bool>>
@@ -188,7 +188,7 @@ class minimize1
               std::make_unique<SR1>(), DynamicMatrix<double>(), -1);
         else if (hess_approx_str == "hybrid_hess")
             hess_approx_ = std::make_unique<HybridUpdate>(
-                std::make_unique<BFGS>(), true, -1);
+              std::make_unique<BFGS>(), true, -1);
         else
             // invalid selection
             std::terminate();
@@ -206,11 +206,7 @@ class minimize1
 TEST_P(minimize1, test_minimize_hess_approx)
 {
     auto [lb, ub, x0] = bounds_and_init_fun_();
-    auto opt = Optimizer(cost_function_,
-                         lb,
-                         ub,
-                         options_,
-                         hess_approx_.get());
+    auto opt = Optimizer(cost_function_, lb, ub, options_, hess_approx_.get());
     auto [fval, x, grad, hess] = opt.minimize(x0);
 
     ASSERT_GE(opt.fval_, opt.fval_min_);
@@ -250,18 +246,16 @@ INSTANTIATE_TEST_SUITE_P(
           Values(false) // TODO Bool() when stepback is implemented
           ),
   [](const testing::TestParamInfo<minimize1::ParamType>& info) {
-      std::string name = "";
-      name += std::to_string(info.index);
+      auto bounds = std::get<0>(info.param).second;
+      auto fun = std::get<1>(info.param).first;
+      auto approx = std::get<1>(info.param).second;
+      auto subspace_dim = subspace_dim_to_str.at(std::get<2>(info.param));
+      auto stepback = step_back_strategy_str.at(std::get<3>(info.param));
+      auto refine = std::to_string(std::get<4>(info.param));
 
-      auto fun = std::get<0>(info.param);
-      auto fun_approx = std::get<0>(info.param);
+      std::string name = bounds + "_" + fun + "_" + approx + "_" +
+                         subspace_dim + "_" + stepback + "_" + refine;
 
-      name += "_" + std::get<0>(info.param).second;
-      name += "_" + std::get<0>(std::get<1>(info.param));
-      name += "_" + std::get<1>(std::get<1>(info.param));
-      name += "_" + subspace_dim_to_str.at(std::get<2>(info.param));
-      name += "_" + step_back_strategy_str.at(std::get<3>(info.param));
-      name += "_" + std::to_string(std::get<4>(info.param));
       return name;
   });
 
@@ -283,11 +277,7 @@ TEST(minimize, test_multistart)
             options.subspace_solver = subspace_dim;
             options.stepback_strategy = stepback;
 
-            Optimizer opt(fun,
-                          lb,
-                          ub,
-                          options,
-                          nullptr);
+            Optimizer opt(fun, lb, ub, options, nullptr);
             for (int i = 0; i < 100; ++i) {
                 auto cur_x0 =
                   blaze::map(lb, ub, [&generator](auto lb, auto ub) {
