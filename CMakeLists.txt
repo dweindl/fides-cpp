@@ -72,6 +72,7 @@ find_package(LAPACK REQUIRED)
 # ...
 # ------------------------------------------------------------------------------
 include(version)
+enable_testing()
 
 add_subdirectory(src)
 add_subdirectory(tests)
