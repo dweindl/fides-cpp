@@ -15,10 +15,18 @@ jobs:
             g++ \
             libatlas-base-dev \
             libspdlog-dev
+    - name: blaze
+      run: |
+        wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz \
+        && tar -xzf blaze-3.8.tar.gz \
+        && cd blaze-3.8 \
+        && cmake -S . -B build/ \
+        && cd build \
+        && cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ \
+        && sudo make -j2 install
 
     - name: Checkout
       uses: actions/checkout@25a956c84d5dd820d28caab9f86b8d183aeeff3d
-
 
     - name: Build
       run: |
