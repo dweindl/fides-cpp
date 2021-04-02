@@ -5,7 +5,8 @@ jobs:
   build:
     name: Tests Ubuntu
     runs-on: ubuntu-20.04
-
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
     steps:
     - name: apt
       run: |
@@ -32,7 +33,7 @@ jobs:
       run: |
         cmake -Wdev -Werror=dev -Wdeprecated -Werror=deprecated \
             -S . -B build/ \
-          && cmake --build build/ -j 2
+          && cmake --build build/
 
     - name: Tests
-      run: CTEST_OUTPUT_ON_FAILURE=1 ctest
+      run: cd build && CTEST_OUTPUT_ON_FAILURE=1 ctest
