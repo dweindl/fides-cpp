@@ -21,8 +21,8 @@ jobs:
         && tar -xzf blaze-3.8.tar.gz \
         && cd blaze-3.8 \
         && cmake -S . -B build/ \
+          -DCMAKE_INSTALL_PREFIX=/usr/local/ \
         && cd build \
-        && cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ \
         && sudo make -j2 install
 
     - name: Checkout
