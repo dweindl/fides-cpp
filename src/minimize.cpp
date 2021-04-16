@@ -266,13 +266,13 @@ Optimizer::check_convergence(const Step& step,
                      gnorm,
                      options_.gatol);
         converged = true;
-    } else if (gnorm <= options_.grtol * fval_) {
+    } else if (gnorm <= options_.grtol * abs(fval_)) {
         exit_flag_ = ExitStatus::gtol;
         spdlog::warn("Stopping as gradient norm satisfies relative convergence "
                      "criteria: {:.2E} < {:.2E} * {:.2E}",
                      gnorm,
                      options_.grtol,
-                     fval_);
+                     abs(fval_));
         converged = true;
     }
     converged_ = converged;
