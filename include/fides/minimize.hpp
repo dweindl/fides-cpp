@@ -81,6 +81,11 @@ class Optimizer
 
   private:
     /**
+     * Perform the actual minimization after inputs have been checked.
+     */
+    void do_minimize();
+
+    /**
      * @brief Tracks the optimization variables that have minimal function
      * value independent of whether the step is accepted or not.
      * @param x_new New optimization variable values
