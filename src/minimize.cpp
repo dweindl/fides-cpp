@@ -105,12 +105,27 @@ Optimizer::minimize(const DynamicVector<double>& x0)
     check_finite();
     converged_ = false;
 
+    try {
+        do_minimize();
+    }  catch (std::runtime_error &e) {
+        spdlog::error(e.what());
+    }
+
+    spdlog::info("Finished: fval: {:.3E} ||g||: {:.3E} exit: {}",
+                 fval_,
+                 norm(grad_),
+                 exit_status_to_str.at(exit_flag_));
+    return std::make_tuple(fval_, x_, grad_, hess_);
+}
+
+void fides::Optimizer::do_minimize()
+{
     double fval_new;
     DynamicVector<double> grad_new;
     DynamicMatrix<double> hess_new;
 
     while (check_continue()) {
-        iteration_ += 1;
+        ++iteration_;
         delta_iter_ = delta_;
 
         auto [v, dv] = get_affine_scaling();
@@ -119,7 +134,7 @@ Optimizer::minimize(const DynamicVector<double>& x0)
         auto diag(blaze::band(scaling, 0L));
         diag = blaze::sqrt(abs(v));
         auto theta =
-          std::max(options_.theta_max, 1 - blaze::maxNorm(v * grad_));
+            std::max(options_.theta_max, 1 - blaze::maxNorm(v * grad_));
         auto step = trust_region(x_,
                                  grad_,
                                  hess_,
@@ -153,11 +168,6 @@ Optimizer::minimize(const DynamicVector<double>& x0)
             update(*step, x_new, fval_new, grad_new, hess_new);
         }
     }
-    spdlog::info("Finished: fval: {:.3E} ||g||: {:.3E} exit: {}",
-                 fval_,
-                 norm(grad_),
-                 exit_status_to_str.at(exit_flag_));
-    return std::make_tuple(fval_, x_, grad_, hess_);
 }
 
 void
